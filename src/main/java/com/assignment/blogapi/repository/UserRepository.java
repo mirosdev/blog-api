@@ -14,6 +14,8 @@ import java.util.UUID;
 public interface UserRepository extends JpaRepository<BlogUser, UUID> {
     Optional<BlogUser> findByUuid(UUID uuid);
 
+    Optional<BlogUser> findByEmail(String email);
+
     @Query("SELECT u.roles FROM BlogUser u WHERE u.uuid = ?1")
     Collection<Role> customFindUserRolesByUserUuid(UUID uuid);
 
