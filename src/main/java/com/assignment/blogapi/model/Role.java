@@ -22,9 +22,7 @@ public class Role {
     private String name;
 
     @ManyToMany(fetch = FetchType.EAGER)
-    // TODO compare with privileges
     @JoinTable(joinColumns = { @JoinColumn(name = "role_id", referencedColumnName = "role_id") }, inverseJoinColumns = { @JoinColumn(name = "priv_id", referencedColumnName = "priv_id") })
-//    @Column(nullable = false)
     private Collection<Privilege> privileges;
 
     @PrePersist

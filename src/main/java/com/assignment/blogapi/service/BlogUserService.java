@@ -6,7 +6,7 @@ import com.assignment.blogapi.model.Privilege;
 import com.assignment.blogapi.model.Role;
 import com.assignment.blogapi.repository.PrivilegeRepository;
 import com.assignment.blogapi.repository.RoleRepository;
-import com.assignment.blogapi.repository.UserRepository;
+import com.assignment.blogapi.repository.BlogUserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,18 +20,18 @@ import java.util.Set;
 
 @Service
 public class BlogUserService {
-    private final UserRepository userRepository;
+    private final BlogUserRepository blogUserRepository;
     private final RoleRepository roleRepository;
     private final PrivilegeRepository privilegeRepository;
     private final PasswordEncoder passwordEncoder;
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
-    public BlogUserService(UserRepository userRepository,
+    public BlogUserService(BlogUserRepository blogUserRepository,
                            RoleRepository roleRepository,
                            PrivilegeRepository privilegeRepository,
                            PasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
+        this.blogUserRepository = blogUserRepository;
         this.roleRepository = roleRepository;
         this.privilegeRepository = privilegeRepository;
         this.passwordEncoder = passwordEncoder;
@@ -44,7 +44,7 @@ public class BlogUserService {
         blogUser.setRoles(getUserRoles());
 
         try {
-            BlogUser saved = this.userRepository.save(blogUser);
+            BlogUser saved = this.blogUserRepository.save(blogUser);
             return new BlogUserDto(saved.getUuid(), saved.getEmail());
         } catch (Exception e) {
             logger.error(e.toString().concat(Arrays.asList(e.getStackTrace()).toString()));

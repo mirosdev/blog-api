@@ -5,7 +5,7 @@ import com.assignment.blogapi.model.Privilege;
 import com.assignment.blogapi.model.Role;
 import com.assignment.blogapi.repository.PrivilegeRepository;
 import com.assignment.blogapi.repository.RoleRepository;
-import com.assignment.blogapi.repository.UserRepository;
+import com.assignment.blogapi.repository.BlogUserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
@@ -17,17 +17,17 @@ import java.util.Set;
 
 @Component
 public class BootstrapData implements CommandLineRunner {
-    private final UserRepository userRepository;
+    private final BlogUserRepository blogUserRepository;
     private final RoleRepository roleRepository;
     private final PrivilegeRepository privilegeRepository;
     private final PasswordEncoder passwordEncoder;
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    public BootstrapData(UserRepository userRepository,
+    public BootstrapData(BlogUserRepository blogUserRepository,
                          RoleRepository roleRepository,
                          PrivilegeRepository privilegeRepository,
                          PasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
+        this.blogUserRepository = blogUserRepository;
         this.roleRepository = roleRepository;
         this.privilegeRepository = privilegeRepository;
         this.passwordEncoder = passwordEncoder;
@@ -35,11 +35,11 @@ public class BootstrapData implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        if (!this.userRepository.existsByEmail("bloguser@fake.com")) {
+        if (!this.blogUserRepository.existsByEmail("bloguser@fake.com")) {
             this.createUser();
         }
 
-        if (!this.userRepository.existsByEmail("blogauthor@fake.com")) {
+        if (!this.blogUserRepository.existsByEmail("blogauthor@fake.com")) {
             this.createAuthorUser();
         }
     }
@@ -55,7 +55,7 @@ public class BootstrapData implements CommandLineRunner {
         try {
             privilegeRepository.saveAll(userPrivileges);
             roleRepository.saveAll(roles);
-            userRepository.save(blogUser);
+            blogUserRepository.save(blogUser);
         } catch (Exception e) {
             logger.error(e.toString().concat(Arrays.asList(e.getStackTrace()).toString()));
         }
@@ -72,7 +72,7 @@ public class BootstrapData implements CommandLineRunner {
         try {
             privilegeRepository.saveAll(authorPrivileges);
             roleRepository.saveAll(roles);
-            userRepository.save(blogUser);
+            blogUserRepository.save(blogUser);
         } catch (Exception e) {
             logger.error(e.toString().concat(Arrays.asList(e.getStackTrace()).toString()));
         }

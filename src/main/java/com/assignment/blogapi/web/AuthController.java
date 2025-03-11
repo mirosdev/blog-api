@@ -46,14 +46,11 @@ public class AuthController {
         final UserDetails userDetails = userDetailsService.loadUserByUsername(authenticationRequest.getUsername());
         final String jwt = jwtUtil.generateToken(userDetails);
 
-        return new ResponseEntity<>(new LoginSuccessResponse(jwt), HttpStatus.OK);
+        return new ResponseEntity<LoginSuccessResponse>(new LoginSuccessResponse(jwt), HttpStatus.OK);
     }
 
     @PostMapping("/register")
     public ResponseEntity<BlogUserDto> register(@RequestBody AuthenticationRequest authenticationRequest) {
-
-
-
-        return new ResponseEntity<>(blogUserService.register(authenticationRequest.getUsername(), authenticationRequest.getPassword()), HttpStatus.OK);
+        return new ResponseEntity<BlogUserDto>(blogUserService.register(authenticationRequest.getUsername(), authenticationRequest.getPassword()), HttpStatus.OK);
     }
 }
