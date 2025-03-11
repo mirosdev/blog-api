@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class BlogArticleService {
@@ -53,7 +54,7 @@ public class BlogArticleService {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        if (optionalBlogArticle != null && optionalBlogArticle.isPresent()) {
+        if (optionalBlogArticle.isPresent()) {
             // Like prep
             BlogArticleLike blogArticleLike = new BlogArticleLike();
             blogArticleLike.setBlogUserUuid(UUID.fromString(userUuid));
@@ -83,13 +84,13 @@ public class BlogArticleService {
     public BlogArticleComment commentOnArticle(BlogArticleCommentRequest blogArticleCommentRequest) {
         Optional<BlogArticle> optionalBlogArticle;
         try {
-            optionalBlogArticle = this.blogArticleRepository.findByUuid(blogArticleCommentRequest.getArticleUuid());
+            optionalBlogArticle = this.blogArticleRepository.findByUuid(UUID.fromString(blogArticleCommentRequest.getArticleUuid()));
         } catch (Exception e) {
             logger.error(e.toString().concat(Arrays.asList(e.getStackTrace()).toString()));
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        if (optionalBlogArticle != null && optionalBlogArticle.isPresent()) {
+        if (optionalBlogArticle.isPresent()) {
             // Comment prep
             BlogArticleComment blogArticleComment = new BlogArticleComment();
             blogArticleComment.setContent(blogArticleCommentRequest.getContent());
@@ -111,6 +112,32 @@ public class BlogArticleService {
             }
 
             return newBlogArticleComment;
+        } else {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    public void deleteArticleComment(BlogArticleCommentRequest blogArticleCommentRequest) {
+        Optional<BlogArticle> optionalBlogArticle;
+        try {
+            optionalBlogArticle = this.blogArticleRepository.findByUuid(UUID.fromString(blogArticleCommentRequest.getArticleUuid()));
+        } catch (Exception e) {
+            logger.error(e.toString().concat(Arrays.asList(e.getStackTrace()).toString()));
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        if (optionalBlogArticle.isPresent()) {
+            BlogArticle blogArticle = optionalBlogArticle.get();
+            blogArticle.setComments(blogArticle.getComments()
+                    .stream().filter((blogArticleComment) -> !blogArticleComment.getUuid().equals(UUID.fromString(blogArticleCommentRequest.getCommentUuid())))
+                    .collect(Collectors.toList()));
+            try {
+                this.blogArticleCommentRepository.deleteById(UUID.fromString(blogArticleCommentRequest.getCommentUuid()));
+                this.blogArticleRepository.save(blogArticle);
+            } catch (Exception e) {
+                logger.error(e.toString().concat(Arrays.asList(e.getStackTrace()).toString()));
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
+            }
         } else {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }

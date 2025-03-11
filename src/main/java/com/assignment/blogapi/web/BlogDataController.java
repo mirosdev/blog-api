@@ -34,6 +34,12 @@ public class BlogDataController {
         return ResponseEntity.ok(blogArticleService.commentOnArticle(blogArticleCommentRequest));
     }
 
+    @DeleteMapping("/comment")
+    public ResponseEntity<?> deleteArticleComment(@RequestBody BlogArticleCommentRequest blogArticleCommentRequest) {
+        this.blogArticleService.deleteArticleComment(blogArticleCommentRequest);
+        return ResponseEntity.ok().build();
+    }
+
     @PostMapping("/like")
     public ResponseEntity<BlogArticleLike> likeOnArticle(@RequestBody BlogArticleLikeRequest blogArticleLikeRequest, Authentication authentication) {
         return ResponseEntity.ok(blogArticleService.likeOnArticle(blogArticleLikeRequest, authentication.getName()));

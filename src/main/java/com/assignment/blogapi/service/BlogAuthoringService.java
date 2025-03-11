@@ -28,7 +28,7 @@ public class BlogAuthoringService {
         try {
             return this.blogArticleRepository.save(blogArticle);
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -37,7 +37,7 @@ public class BlogAuthoringService {
         try {
             optionalBlogArticle = this.blogArticleRepository.findByUuid(UUID.fromString(blogArticleRequestPayload.getUuid()));
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
         if (optionalBlogArticle.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
@@ -49,7 +49,24 @@ public class BlogAuthoringService {
         try {
             return this.blogArticleRepository.save(blogArticle);
         } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public void deleteBlogArticle(BlogArticleRequestPayload blogArticleRequestPayload) {
+        Optional<BlogArticle> optionalBlogArticle;
+        try {
+            optionalBlogArticle = this.blogArticleRepository.findByUuid(UUID.fromString(blogArticleRequestPayload.getUuid()));
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        if (optionalBlogArticle.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+        try {
+            this.blogArticleRepository.deleteById(optionalBlogArticle.get().getUuid());
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

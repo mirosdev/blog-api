@@ -1,35 +1,38 @@
 package com.assignment.blogapi.bootstrap;
 
-import com.assignment.blogapi.model.BlogUser;
-import com.assignment.blogapi.model.Privilege;
-import com.assignment.blogapi.model.Role;
-import com.assignment.blogapi.repository.PrivilegeRepository;
-import com.assignment.blogapi.repository.RoleRepository;
-import com.assignment.blogapi.repository.BlogUserRepository;
+import com.assignment.blogapi.model.*;
+import com.assignment.blogapi.repository.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
-import java.util.Set;
+import java.util.*;
 
 @Component
 public class BootstrapData implements CommandLineRunner {
     private final BlogUserRepository blogUserRepository;
     private final RoleRepository roleRepository;
     private final PrivilegeRepository privilegeRepository;
+    private final BlogArticleRepository blogArticleRepository;
+    private final BlogArticleCommentRepository blogArticleCommentRepository;
     private final PasswordEncoder passwordEncoder;
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
+    @Autowired
     public BootstrapData(BlogUserRepository blogUserRepository,
                          RoleRepository roleRepository,
                          PrivilegeRepository privilegeRepository,
-                         PasswordEncoder passwordEncoder) {
+                         PasswordEncoder passwordEncoder,
+                         BlogArticleRepository blogArticleRepository,
+                         BlogArticleCommentRepository blogArticleCommentRepository) {
         this.blogUserRepository = blogUserRepository;
         this.roleRepository = roleRepository;
         this.privilegeRepository = privilegeRepository;
+        this.blogArticleRepository = blogArticleRepository;
+        this.blogArticleCommentRepository = blogArticleCommentRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -38,9 +41,11 @@ public class BootstrapData implements CommandLineRunner {
         if (!this.blogUserRepository.existsByEmail("bloguser@fake.com")) {
             this.createUser();
         }
-
         if (!this.blogUserRepository.existsByEmail("blogauthor@fake.com")) {
             this.createAuthorUser();
+        }
+        if (this.blogArticleRepository.count() == 0) {
+            this.createBlogArticleAndComments();
         }
     }
 
@@ -76,5 +81,21 @@ public class BootstrapData implements CommandLineRunner {
         } catch (Exception e) {
             logger.error(e.toString().concat(Arrays.asList(e.getStackTrace()).toString()));
         }
+    }
+
+    private void createBlogArticleAndComments() {
+        BlogArticle blogArticle = new BlogArticle();
+        blogArticle.setTitle("This is a blog article title");
+        blogArticle.setContent("This is a blog article");
+        BlogArticleComment blogArticleComment = new BlogArticleComment();
+        blogArticleComment.setContent("This is a blog article comment");
+        BlogArticleComment blogArticleComment2 = new BlogArticleComment();
+        blogArticleComment2.setContent("This is second blog article comment");
+        Set<BlogArticleComment> comments = new HashSet<>();
+        comments.add(blogArticleComment);
+        comments.add(blogArticleComment2);
+        List<BlogArticleComment> returnedComments = this.blogArticleCommentRepository.saveAll(comments);
+        blogArticle.setComments(returnedComments);
+        this.blogArticleRepository.save(blogArticle);
     }
 }
