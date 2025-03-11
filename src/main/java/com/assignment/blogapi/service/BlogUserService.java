@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.Set;
 
 @Service
@@ -49,6 +50,20 @@ public class BlogUserService {
         } catch (Exception e) {
             logger.error(e.toString().concat(Arrays.asList(e.getStackTrace()).toString()));
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email: " + username + " already exists");
+        }
+    }
+
+    public BlogUser getBlogUserByUsername(String username) {
+        Optional<BlogUser> blogUser;
+        try {
+            blogUser = this.blogUserRepository.findByEmail(username);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        }
+        if (blogUser.isPresent()) {
+            return blogUser.get();
+        } else {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         }
     }
 

@@ -1,8 +1,8 @@
 package com.assignment.blogapi.web;
 
 import com.assignment.blogapi.dto.BlogUserDto;
+import com.assignment.blogapi.model.BlogUser;
 import com.assignment.blogapi.security.AuthenticationRequest;
-import com.assignment.blogapi.security.CustomUserDetailsService;
 import com.assignment.blogapi.security.JwtUtil;
 import com.assignment.blogapi.dto.LoginSuccessResponse;
 import com.assignment.blogapi.service.BlogUserService;
@@ -11,7 +11,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,17 +21,14 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final AuthenticationManager authenticationManager;
-    private final CustomUserDetailsService userDetailsService;
-    private final JwtUtil jwtUtil;
     private final BlogUserService blogUserService;
+    private final JwtUtil jwtUtil;
 
     @Autowired
     public AuthController(AuthenticationManager authenticationManager,
-                          CustomUserDetailsService userDetailsService,
                           JwtUtil jwtUtil,
                           BlogUserService blogUserService) {
         this.authenticationManager = authenticationManager;
-        this.userDetailsService = userDetailsService;
         this.jwtUtil = jwtUtil;
         this.blogUserService = blogUserService;
     }
@@ -43,14 +39,15 @@ public class AuthController {
                 new UsernamePasswordAuthenticationToken(authenticationRequest.getUsername(), authenticationRequest.getPassword())
         );
 
-        final UserDetails userDetails = userDetailsService.loadUserByUsername(authenticationRequest.getUsername());
-        final String jwt = jwtUtil.generateToken(userDetails);
+        // blogUserService.getBlogUserByUsername() called once for further storing UUID in JWT and Context instead of user's username
+        BlogUser blogUser = blogUserService.getBlogUserByUsername(authenticationRequest.getUsername());
+        final String jwt = jwtUtil.generateToken(blogUser);
 
-        return new ResponseEntity<LoginSuccessResponse>(new LoginSuccessResponse(jwt), HttpStatus.OK);
+        return ResponseEntity.ok(new LoginSuccessResponse(jwt));
     }
 
     @PostMapping("/register")
     public ResponseEntity<BlogUserDto> register(@RequestBody AuthenticationRequest authenticationRequest) {
-        return new ResponseEntity<BlogUserDto>(blogUserService.register(authenticationRequest.getUsername(), authenticationRequest.getPassword()), HttpStatus.OK);
+        return ResponseEntity.ok(blogUserService.register(authenticationRequest.getUsername(), authenticationRequest.getPassword()));
     }
 }

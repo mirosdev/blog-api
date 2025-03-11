@@ -8,7 +8,6 @@ import com.assignment.blogapi.model.BlogArticleComment;
 import com.assignment.blogapi.model.BlogArticleLike;
 import com.assignment.blogapi.service.BlogArticleService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -27,19 +26,17 @@ public class BlogDataController {
 
     @GetMapping("/article")
     public ResponseEntity<Collection<BlogArticle>> getBlogArticles() {
-        return new ResponseEntity<Collection<BlogArticle>>(blogArticleService.getBlogArticles(), HttpStatus.OK);
+        return ResponseEntity.ok(blogArticleService.getBlogArticles());
     }
 
     @PostMapping("/comment")
     public ResponseEntity<BlogArticleComment> commentOnArticle(@RequestBody BlogArticleCommentRequest blogArticleCommentRequest) {
-
-        return new ResponseEntity<BlogArticleComment>(blogArticleService.commentOnArticle(blogArticleCommentRequest), HttpStatus.OK);
+        return ResponseEntity.ok(blogArticleService.commentOnArticle(blogArticleCommentRequest));
     }
 
     @PostMapping("/like")
     public ResponseEntity<BlogArticleLike> likeOnArticle(@RequestBody BlogArticleLikeRequest blogArticleLikeRequest, Authentication authentication) {
-
-        return new ResponseEntity<BlogArticleLike>(blogArticleService.likeOnArticle(blogArticleLikeRequest, authentication.getName()), HttpStatus.OK);
+        return ResponseEntity.ok(blogArticleService.likeOnArticle(blogArticleLikeRequest, authentication.getName()));
     }
 
 }

@@ -1,6 +1,6 @@
 package com.assignment.blogapi.spring;
 
-import com.assignment.blogapi.security.CustomUserDetailsService;
+import com.assignment.blogapi.repository.BlogUserRepository;
 import com.assignment.blogapi.security.JwtAuthenticationEntryPoint;
 import com.assignment.blogapi.security.JwtRequestFilter;
 import com.assignment.blogapi.security.JwtUtil;
@@ -27,17 +27,17 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @EnableWebSecurity
 public class SpringConfiguration {
 
-    private final CustomUserDetailsService customUserDetailsService;
     private final JwtUtil jwtUtil;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    private final BlogUserRepository blogUserRepository;
 
     @Autowired
     public SpringConfiguration(JwtUtil jwtUtil,
-                               CustomUserDetailsService customUserDetailsService,
-                               JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint) {
+                               JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint,
+                               BlogUserRepository blogUserRepository) {
         this.jwtUtil = jwtUtil;
-        this.customUserDetailsService = customUserDetailsService;
         this.jwtAuthenticationEntryPoint = jwtAuthenticationEntryPoint;
+        this.blogUserRepository = blogUserRepository;
     }
 
     @Bean
@@ -62,7 +62,7 @@ public class SpringConfiguration {
 
     @Bean
     public JwtRequestFilter jwtRequestFilter() {
-        return new JwtRequestFilter(jwtUtil, customUserDetailsService);
+        return new JwtRequestFilter(jwtUtil, blogUserRepository);
     }
 
     @Bean

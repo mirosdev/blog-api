@@ -1,5 +1,6 @@
 package com.assignment.blogapi.security;
 
+import com.assignment.blogapi.model.BlogUser;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -22,7 +23,7 @@ public class JwtUtil {
     private final String SECRET_KEY = "5mLpwckAJIybuxA8dMDco4bXGZ7dg8DPSoyOeDne1WZENSoQmiM5CN7XUHygy1TlB68H9wDFHDQfjHY5HYb2pTiAw00XDvHhUzKgVZSagUDzVr7tyID3J4QhniCgpt4HNBaN0P8Gz4q26yPI7UhHWRk76fkQ9Asz";
     SecretKey signingKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(SECRET_KEY));
 
-    public String extractUsername(String token) {
+    public String extractUserUuid(String token) {
         return extractClaim(token, Claims::getSubject);
     }
 
@@ -43,11 +44,11 @@ public class JwtUtil {
         return extractExpiration(token).before(new Date());
     }
 
-    public String generateToken(UserDetails userDetails) {
+    public String generateToken(BlogUser blogUser) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("username", userDetails.getUsername());
-        claims.put("authorities", userDetails.getAuthorities());
-        return createToken(claims, userDetails.getUsername());
+        claims.put("uuid", blogUser.getUuid());
+        claims.put("authorities", blogUser.getAuthorities());
+        return createToken(claims, blogUser.getUuid().toString());
     }
 
     private String createToken(Map<String, Object> claims, String subject) {
