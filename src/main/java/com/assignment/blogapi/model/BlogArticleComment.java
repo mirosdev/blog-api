@@ -6,6 +6,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 
+import java.util.Date;
 import java.util.UUID;
 
 @Entity
@@ -17,9 +18,13 @@ public class BlogArticleComment {
     @Column(nullable = false, name = "blog_article_comment_content")
     private String content;
 
+    @Column(nullable = false, name = "blog_article_comment_date_created")
+    private Date dateCreated;
+
     @PrePersist
     public void generateOnCreate() {
         this.uuid = Generators.timeBasedGenerator().generate();
+        this.dateCreated = new Date();
     }
 
     public String getContent() {
@@ -30,11 +35,19 @@ public class BlogArticleComment {
         return uuid;
     }
 
+    public Date getDateCreated() {
+        return dateCreated;
+    }
+
     public void setContent(String content) {
         this.content = content;
     }
 
     public void setUuid(UUID uuid) {
         this.uuid = uuid;
+    }
+
+    public void setDateCreated(Date dateCreated) {
+        this.dateCreated = dateCreated;
     }
 }

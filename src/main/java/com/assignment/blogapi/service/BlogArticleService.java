@@ -37,12 +37,19 @@ public class BlogArticleService {
     }
 
     public Collection<BlogArticle> getBlogArticles() {
+        Collection<BlogArticle> blogArticles;
         try {
-            return this.blogArticleRepository.findAll();
+            blogArticles = this.blogArticleRepository.findAll();
         } catch (Exception e) {
             logger.error(e.toString().concat(Arrays.asList(e.getStackTrace()).toString()));
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
+        blogArticles.forEach(blogArticle -> {
+            blogArticle.setComments(blogArticle.getComments().stream().sorted(
+                    Comparator.comparing(o -> o.getDateCreated().getTime())
+            ).collect(Collectors.toList()));
+        });
+        return blogArticles;
     }
 
     public BlogArticleLike likeOnArticle(BlogArticleLikeRequest blogArticleLikeRequest, String userUuid) {

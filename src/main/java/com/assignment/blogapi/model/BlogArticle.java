@@ -15,7 +15,7 @@ public class BlogArticle {
     @Column(nullable = false, name = "blog_article_title")
     private String title;
 
-    @Column(nullable = false, name = "blog_article_content")
+    @Column(nullable = false, name = "blog_article_content", length = 10485760)
     private String content;
 
     @ManyToMany(fetch = FetchType.EAGER)
