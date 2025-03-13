@@ -1,5 +1,6 @@
 package com.assignment.blogapi.service;
 
+import com.assignment.blogapi.dto.AuthRegistrationRequest;
 import com.assignment.blogapi.dto.BlogUserDto;
 import com.assignment.blogapi.model.BlogUser;
 import com.assignment.blogapi.model.Privilege;
@@ -38,18 +39,20 @@ public class BlogUserService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public BlogUserDto register(String username, String password) {
+    public BlogUserDto register(AuthRegistrationRequest authRegistrationRequest) {
         BlogUser blogUser = new BlogUser();
-        blogUser.setEmail(username);
-        blogUser.setPassword(this.passwordEncoder.encode(password));
+        blogUser.setEmail(authRegistrationRequest.getUsername());
+        blogUser.setPassword(this.passwordEncoder.encode(authRegistrationRequest.getPassword()));
         blogUser.setRoles(getUserRoles());
+        blogUser.setFirstName(authRegistrationRequest.getFirstName());
+        blogUser.setLastName(authRegistrationRequest.getLastName());
 
         try {
             BlogUser saved = this.blogUserRepository.save(blogUser);
             return new BlogUserDto(saved.getUuid(), saved.getEmail());
         } catch (Exception e) {
             logger.error(e.toString().concat(Arrays.asList(e.getStackTrace()).toString()));
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email: " + username + " already exists");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email: " + authRegistrationRequest.getUsername() + " already exists");
         }
     }
 

@@ -20,6 +20,12 @@ public class BlogUser {
     @Column()
     private String password;
 
+    @Column(nullable = false)
+    private String firstName;
+
+    @Column(nullable = false)
+    private String lastName;
+
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(joinColumns = { @JoinColumn(name = "user_id", referencedColumnName = "user_id") }, inverseJoinColumns = { @JoinColumn(name = "role_id", referencedColumnName = "role_id") })
     @Column(nullable = false)
@@ -80,5 +86,21 @@ public class BlogUser {
 
     public String getPassword() {
         return password;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
     }
 }

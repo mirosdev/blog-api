@@ -53,6 +53,8 @@ public class BootstrapData implements CommandLineRunner {
         BlogUser blogUser = new BlogUser();
         blogUser.setEmail("bloguser@fake.com");
         blogUser.setPassword(this.passwordEncoder.encode("password"));
+        blogUser.setFirstName("John");
+        blogUser.setLastName("Smith");
         Set<Privilege> userPrivileges = Privilege.userPrivilegeSet();
         Set<Role> roles = Role.singleUserRole(userPrivileges);
         blogUser.setRoles(roles);
@@ -70,6 +72,8 @@ public class BootstrapData implements CommandLineRunner {
         BlogUser blogUser = new BlogUser();
         blogUser.setEmail("blogauthor@fake.com");
         blogUser.setPassword(this.passwordEncoder.encode("password"));
+        blogUser.setFirstName("John");
+        blogUser.setLastName("Smith");
         Set<Privilege> authorPrivileges = Privilege.authorPrivilegeSet();
         Set<Role> roles = Role.singleAuthorRole(authorPrivileges);
         blogUser.setRoles(roles);

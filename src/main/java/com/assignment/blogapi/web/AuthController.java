@@ -1,13 +1,13 @@
 package com.assignment.blogapi.web;
 
+import com.assignment.blogapi.dto.AuthRegistrationRequest;
 import com.assignment.blogapi.dto.BlogUserDto;
 import com.assignment.blogapi.model.BlogUser;
-import com.assignment.blogapi.security.AuthenticationRequest;
+import com.assignment.blogapi.dto.AuthenticationRequest;
 import com.assignment.blogapi.security.JwtUtil;
 import com.assignment.blogapi.dto.LoginSuccessResponse;
 import com.assignment.blogapi.service.BlogUserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -47,7 +47,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<BlogUserDto> register(@RequestBody AuthenticationRequest authenticationRequest) {
-        return ResponseEntity.ok(blogUserService.register(authenticationRequest.getUsername(), authenticationRequest.getPassword()));
+    public ResponseEntity<BlogUserDto> register(@RequestBody AuthRegistrationRequest authRegistrationRequest) {
+        return ResponseEntity.ok(blogUserService.register(authRegistrationRequest));
     }
 }
