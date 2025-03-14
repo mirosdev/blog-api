@@ -41,7 +41,7 @@ public class BlogUserService {
 
     public Boolean checkUsernameAvailability(UsernameCheckRequest usernameCheckRequest) {
         try {
-            return this.blogUserRepository.existsByEmail(usernameCheckRequest.getUsername());
+            return !this.blogUserRepository.existsByEmail(usernameCheckRequest.getUsername());
         } catch (Exception e) {
             logger.error(e.toString().concat(Arrays.asList(e.getStackTrace()).toString()));
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);

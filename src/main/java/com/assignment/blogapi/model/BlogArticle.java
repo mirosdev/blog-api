@@ -4,6 +4,7 @@ import com.fasterxml.uuid.Generators;
 import jakarta.persistence.*;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.UUID;
 
 @Entity
@@ -18,6 +19,9 @@ public class BlogArticle {
     @Column(nullable = false, name = "blog_article_content", length = 10485760)
     private String content;
 
+    @Column(nullable = false, name = "blog_article_date_created")
+    private Date dateCreated;
+
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(joinColumns = { @JoinColumn(name = "blog_article_id", referencedColumnName = "blog_article_id") }, inverseJoinColumns = { @JoinColumn(name = "blog_article_comment_id", referencedColumnName = "blog_article_comment_id") })
     private Collection<BlogArticleComment> comments;
@@ -29,6 +33,7 @@ public class BlogArticle {
     @PrePersist
     public void generateOnCreate() {
         this.uuid = Generators.timeBasedGenerator().generate();
+        this.dateCreated = new Date();
     }
 
     public String getContent() {
@@ -69,5 +74,13 @@ public class BlogArticle {
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    public void setDateCreated(Date dateCreated) {
+        this.dateCreated = dateCreated;
+    }
+
+    public Date getDateCreated() {
+        return dateCreated;
     }
 }

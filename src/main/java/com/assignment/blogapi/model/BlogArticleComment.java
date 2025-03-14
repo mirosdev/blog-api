@@ -15,7 +15,7 @@ public class BlogArticleComment {
     @Column(nullable = false, unique = true, name = "blog_article_comment_id")
     private UUID uuid;
 
-    @Column(nullable = false, name = "blog_article_comment_content")
+    @Column(nullable = false, name = "blog_article_comment_content", length = 10485760)
     private String content;
 
     @Column(nullable = false, name = "blog_article_comment_date_created")

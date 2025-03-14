@@ -39,14 +39,16 @@ public class BlogArticleService {
     public Collection<BlogArticle> getBlogArticles() {
         Collection<BlogArticle> blogArticles;
         try {
-            blogArticles = this.blogArticleRepository.findAll();
+            blogArticles = this.blogArticleRepository.findAll().stream().sorted(
+                    (o1, o2) -> o2.getDateCreated().compareTo(o1.getDateCreated())
+            ).collect(Collectors.toList());
         } catch (Exception e) {
             logger.error(e.toString().concat(Arrays.asList(e.getStackTrace()).toString()));
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
         blogArticles.forEach(blogArticle -> {
             blogArticle.setComments(blogArticle.getComments().stream().sorted(
-                    Comparator.comparing(o -> o.getDateCreated().getTime())
+                    (o1, o2) -> o1.getDateCreated().compareTo(o2.getDateCreated())
             ).collect(Collectors.toList()));
         });
         return blogArticles;
