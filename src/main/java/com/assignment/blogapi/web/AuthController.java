@@ -1,13 +1,11 @@
 package com.assignment.blogapi.web;
 
-import com.assignment.blogapi.dto.AuthRegistrationRequest;
-import com.assignment.blogapi.dto.BlogUserDto;
+import com.assignment.blogapi.dto.*;
 import com.assignment.blogapi.model.BlogUser;
-import com.assignment.blogapi.dto.AuthenticationRequest;
 import com.assignment.blogapi.security.JwtUtil;
-import com.assignment.blogapi.dto.LoginSuccessResponse;
 import com.assignment.blogapi.service.BlogUserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -15,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -47,7 +46,24 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<BlogUserDto> register(@RequestBody AuthRegistrationRequest authRegistrationRequest) {
-        return ResponseEntity.ok(blogUserService.register(authRegistrationRequest));
+    public ResponseEntity<LoginSuccessResponse> register(@RequestBody AuthRegistrationRequest authRegistrationRequest) {
+        BlogUser blogUser;
+        try {
+            blogUser = blogUserService.register(authRegistrationRequest);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(blogUser.getEmail(), authRegistrationRequest.getPassword())
+        );
+        final String jwt = jwtUtil.generateToken(blogUser);
+
+        return ResponseEntity.ok(new LoginSuccessResponse(jwt));
+    }
+
+    @PostMapping("/username-check")
+    public ResponseEntity<UsernameCheckResponse> checkUsernameAvailability(@RequestBody UsernameCheckRequest usernameCheckRequest) {
+        return ResponseEntity.ok(new UsernameCheckResponse(this.blogUserService.checkUsernameAvailability(usernameCheckRequest)));
     }
 }
