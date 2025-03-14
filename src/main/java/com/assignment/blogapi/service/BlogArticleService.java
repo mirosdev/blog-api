@@ -54,37 +54,64 @@ public class BlogArticleService {
         return blogArticles;
     }
 
-    public BlogArticleLike likeOnArticle(BlogArticleLikeRequest blogArticleLikeRequest, String userUuid) {
+    public BlogArticleLike toggleLikeOnArticle(BlogArticleLikeRequest blogArticleLikeRequest, String userUuid) {
         Optional<BlogArticle> optionalBlogArticle;
         try {
-            optionalBlogArticle = this.blogArticleRepository.findByUuid(blogArticleLikeRequest.getArticleUuid());
+            optionalBlogArticle = this.blogArticleRepository.findByUuid(UUID.fromString(blogArticleLikeRequest.getArticleUuid()));
         } catch (Exception e) {
             logger.error(e.toString().concat(Arrays.asList(e.getStackTrace()).toString()));
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         if (optionalBlogArticle.isPresent()) {
-            // Like prep
-            BlogArticleLike blogArticleLike = new BlogArticleLike();
-            blogArticleLike.setBlogUserUuid(UUID.fromString(userUuid));
-
-            // Article prep
+            BlogArticleLike selectedBlogArticleLike;
             BlogArticle blogArticle = optionalBlogArticle.get();
-            Set<BlogArticleLike> likes = new HashSet<>(blogArticle.getLikes());
-            likes.add(blogArticleLike);
 
-            blogArticle.setLikes(likes);
+            // Removing like
+            if (blogArticle.getLikes().stream().anyMatch(like -> like.getBlogUserUuid().equals(UUID.fromString(userUuid)))) {
+                selectedBlogArticleLike = blogArticle.getLikes().stream()
+                        .filter(like -> like.getBlogUserUuid().equals(UUID.fromString(userUuid))).findFirst().orElse(null);
+                blogArticle.setLikes(blogArticle.getLikes().stream()
+                        .filter(like -> !like.getBlogUserUuid().equals(UUID.fromString(userUuid)))
+                        .collect(Collectors.toList()));
 
-            BlogArticleLike newBlogArticleLike;
-            try {
-                newBlogArticleLike = this.blogArticleLikeRepository.save(blogArticleLike);
-                this.blogArticleRepository.save(blogArticle);
-            } catch (Exception e) {
-                logger.error(e.toString().concat(Arrays.asList(e.getStackTrace()).toString()));
-                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
+                if (selectedBlogArticleLike != null) {
+                    try {
+                        this.blogArticleRepository.save(blogArticle);
+                        this.blogArticleLikeRepository.deleteById(selectedBlogArticleLike.getUuid());
+                    } catch (Exception e) {
+                        logger.error(e.toString().concat(Arrays.asList(e.getStackTrace()).toString()));
+                        throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
+                    }
+
+                    return selectedBlogArticleLike;
+                } else {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+                }
+
+                // Adding like
+            } else {
+                // Like prep
+                BlogArticleLike blogArticleLike = new BlogArticleLike();
+                blogArticleLike.setBlogUserUuid(UUID.fromString(userUuid));
+
+                // Article prep
+                Set<BlogArticleLike> likes = new HashSet<>(blogArticle.getLikes());
+                likes.add(blogArticleLike);
+
+                blogArticle.setLikes(likes);
+
+                BlogArticleLike newBlogArticleLike;
+                try {
+                    newBlogArticleLike = this.blogArticleLikeRepository.save(blogArticleLike);
+                    this.blogArticleRepository.save(blogArticle);
+                } catch (Exception e) {
+                    logger.error(e.toString().concat(Arrays.asList(e.getStackTrace()).toString()));
+                    throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+
+                return newBlogArticleLike;
             }
-
-            return newBlogArticleLike;
         } else {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }

@@ -34,6 +34,9 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<LoginSuccessResponse> authenticate(@RequestBody AuthenticationRequest authenticationRequest) {
+        if (authenticationRequest.getUsername() == null || authenticationRequest.getPassword() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(authenticationRequest.getUsername(), authenticationRequest.getPassword())
         );
@@ -47,6 +50,11 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<LoginSuccessResponse> register(@RequestBody AuthRegistrationRequest authRegistrationRequest) {
+        if (authRegistrationRequest.getUsername() == null || authRegistrationRequest.getPassword() == null
+                || authRegistrationRequest.getFirstName() == null || authRegistrationRequest.getLastName() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+
         BlogUser blogUser;
         try {
             blogUser = blogUserService.register(authRegistrationRequest);
@@ -64,6 +72,10 @@ public class AuthController {
 
     @PostMapping("/username-check")
     public ResponseEntity<UsernameCheckResponse> checkUsernameAvailability(@RequestBody UsernameCheckRequest usernameCheckRequest) {
+        if (usernameCheckRequest.getUsername() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+
         return ResponseEntity.ok(new UsernameCheckResponse(this.blogUserService.checkUsernameAvailability(usernameCheckRequest)));
     }
 }

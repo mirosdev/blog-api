@@ -8,4 +8,5 @@ import java.util.UUID;
 
 @Repository
 public interface BlogArticleLikeRepository extends JpaRepository<BlogArticleLike, UUID> {
+    void deleteBlogArticleLikeByBlogUserUuid(UUID blogUserUuid);
 }

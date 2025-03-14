@@ -1,15 +1,13 @@
 package com.assignment.blogapi.dto;
 
-import java.util.UUID;
-
 public class BlogArticleLikeRequest {
-    private UUID articleUuid;
+    private String articleUuid;
 
-    public UUID getArticleUuid() {
+    public String getArticleUuid() {
         return articleUuid;
     }
 
-    public void setArticleUuid(UUID articleUuid) {
+    public void setArticleUuid(String articleUuid) {
         this.articleUuid = articleUuid;
     }
 }
