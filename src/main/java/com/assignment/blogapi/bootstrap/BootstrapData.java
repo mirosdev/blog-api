@@ -5,7 +5,6 @@ import com.assignment.blogapi.repository.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -51,7 +50,6 @@ public class BootstrapData implements CommandLineRunner {
             this.createBlogArticleAndComments(3);
             this.createBlogArticleAndComments(4);
         }
-        System.out.println(this.SECRET_KEY);
     }
 
     private void createUser() {
