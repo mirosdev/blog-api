@@ -22,9 +22,6 @@ public class BootstrapData implements CommandLineRunner {
     private final PasswordEncoder passwordEncoder;
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    @Value("${jwt.secretkey}")
-    private String SECRET_KEY;
-
     @Autowired
     public BootstrapData(BlogUserRepository blogUserRepository,
                          RoleRepository roleRepository,
