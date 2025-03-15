@@ -1,10 +1,8 @@
 package com.assignment.blogapi.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.uuid.Generators;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.PrePersist;
+import jakarta.persistence.*;
 
 import java.util.Date;
 import java.util.UUID;
@@ -14,6 +12,11 @@ public class BlogArticleComment {
     @Id
     @Column(nullable = false, unique = true, name = "blog_article_comment_id")
     private UUID uuid;
+
+    @ManyToOne
+    @JoinColumn(name = "blog_article_id")
+    @JsonBackReference
+    private BlogArticle blogArticle;
 
     @Column(nullable = false, name = "blog_article_comment_content", length = 10485760)
     private String content;
@@ -39,6 +42,10 @@ public class BlogArticleComment {
         return dateCreated;
     }
 
+    public BlogArticle getBlogArticle() {
+        return blogArticle;
+    }
+
     public void setContent(String content) {
         this.content = content;
     }
@@ -49,5 +56,9 @@ public class BlogArticleComment {
 
     public void setDateCreated(Date dateCreated) {
         this.dateCreated = dateCreated;
+    }
+
+    public void setBlogArticle(BlogArticle blogArticle) {
+        this.blogArticle = blogArticle;
     }
 }

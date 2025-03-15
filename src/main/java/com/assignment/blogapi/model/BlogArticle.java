@@ -1,5 +1,6 @@
 package com.assignment.blogapi.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.uuid.Generators;
 import jakarta.persistence.*;
 
@@ -22,12 +23,12 @@ public class BlogArticle {
     @Column(nullable = false, name = "blog_article_date_created")
     private Date dateCreated;
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(joinColumns = { @JoinColumn(name = "blog_article_id", referencedColumnName = "blog_article_id") }, inverseJoinColumns = { @JoinColumn(name = "blog_article_comment_id", referencedColumnName = "blog_article_comment_id") })
+    @OneToMany(mappedBy = "blogArticle")
+    @JsonManagedReference
     private Collection<BlogArticleComment> comments;
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(joinColumns = { @JoinColumn(name = "blog_article_id", referencedColumnName = "blog_article_id") }, inverseJoinColumns = { @JoinColumn(name = "blog_article_like_id", referencedColumnName = "blog_article_like_id") })
+    @OneToMany(mappedBy = "blogArticle")
+    @JsonManagedReference
     private Collection<BlogArticleLike> likes;
 
     @PrePersist

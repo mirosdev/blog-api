@@ -64,53 +64,30 @@ public class BlogArticleService {
         }
 
         if (optionalBlogArticle.isPresent()) {
-            BlogArticleLike selectedBlogArticleLike;
             BlogArticle blogArticle = optionalBlogArticle.get();
+            BlogArticleLike existingLike = blogArticle.getLikes().stream().filter(like -> like.getBlogUserUuid().equals(UUID.fromString(userUuid))).findFirst().orElse(null);
 
             // Removing like
-            if (blogArticle.getLikes().stream().anyMatch(like -> like.getBlogUserUuid().equals(UUID.fromString(userUuid)))) {
-                selectedBlogArticleLike = blogArticle.getLikes().stream()
-                        .filter(like -> like.getBlogUserUuid().equals(UUID.fromString(userUuid))).findFirst().orElse(null);
-                blogArticle.setLikes(blogArticle.getLikes().stream()
-                        .filter(like -> !like.getBlogUserUuid().equals(UUID.fromString(userUuid)))
-                        .collect(Collectors.toList()));
-
-                if (selectedBlogArticleLike != null) {
-                    try {
-                        this.blogArticleRepository.save(blogArticle);
-                        this.blogArticleLikeRepository.deleteById(selectedBlogArticleLike.getUuid());
-                    } catch (Exception e) {
-                        logger.error(e.toString().concat(Arrays.asList(e.getStackTrace()).toString()));
-                        throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
-                    }
-
-                    return selectedBlogArticleLike;
-                } else {
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-                }
-
-                // Adding like
-            } else {
-                // Like prep
-                BlogArticleLike blogArticleLike = new BlogArticleLike();
-                blogArticleLike.setBlogUserUuid(UUID.fromString(userUuid));
-
-                // Article prep
-                Set<BlogArticleLike> likes = new HashSet<>(blogArticle.getLikes());
-                likes.add(blogArticleLike);
-
-                blogArticle.setLikes(likes);
-
-                BlogArticleLike newBlogArticleLike;
+            if (existingLike != null) {
                 try {
-                    newBlogArticleLike = this.blogArticleLikeRepository.save(blogArticleLike);
-                    this.blogArticleRepository.save(blogArticle);
+                    this.blogArticleLikeRepository.deleteById(existingLike.getUuid());
                 } catch (Exception e) {
                     logger.error(e.toString().concat(Arrays.asList(e.getStackTrace()).toString()));
                     throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
                 }
+                return existingLike;
+            } else {
+                // Adding like
+                BlogArticleLike blogArticleLike = new BlogArticleLike();
+                blogArticleLike.setBlogUserUuid(UUID.fromString(userUuid));
+                blogArticleLike.setBlogArticle(blogArticle);
 
-                return newBlogArticleLike;
+                try {
+                    return this.blogArticleLikeRepository.save(blogArticleLike);
+                } catch (Exception e) {
+                    logger.error(e.toString().concat(Arrays.asList(e.getStackTrace()).toString()));
+                    throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
+                }
             }
         } else {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
@@ -127,55 +104,26 @@ public class BlogArticleService {
         }
 
         if (optionalBlogArticle.isPresent()) {
-            // Comment prep
             BlogArticleComment blogArticleComment = new BlogArticleComment();
             blogArticleComment.setContent(blogArticleCommentRequest.getContent());
-
-            // Article prep
-            BlogArticle blogArticle = optionalBlogArticle.get();
-            Set<BlogArticleComment> comments = new HashSet<>(blogArticle.getComments());
-            comments.add(blogArticleComment);
-
-            blogArticle.setComments(comments);
-
-            BlogArticleComment newBlogArticleComment;
+            blogArticleComment.setBlogArticle(optionalBlogArticle.get());
             try {
-                newBlogArticleComment = this.blogArticleCommentRepository.save(blogArticleComment);
-                this.blogArticleRepository.save(blogArticle);
+                return this.blogArticleCommentRepository.save(blogArticleComment);
             } catch (Exception e) {
                 logger.error(e.toString().concat(Arrays.asList(e.getStackTrace()).toString()));
                 throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
             }
-
-            return newBlogArticleComment;
         } else {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
     }
 
     public void deleteArticleComment(BlogArticleCommentRequest blogArticleCommentRequest) {
-        Optional<BlogArticle> optionalBlogArticle;
         try {
-            optionalBlogArticle = this.blogArticleRepository.findByUuid(UUID.fromString(blogArticleCommentRequest.getArticleUuid()));
+            this.blogArticleCommentRepository.deleteById(UUID.fromString(blogArticleCommentRequest.getCommentUuid()));
         } catch (Exception e) {
             logger.error(e.toString().concat(Arrays.asList(e.getStackTrace()).toString()));
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-
-        if (optionalBlogArticle.isPresent()) {
-            BlogArticle blogArticle = optionalBlogArticle.get();
-            blogArticle.setComments(blogArticle.getComments()
-                    .stream().filter((blogArticleComment) -> !blogArticleComment.getUuid().equals(UUID.fromString(blogArticleCommentRequest.getCommentUuid())))
-                    .collect(Collectors.toList()));
-            try {
-                this.blogArticleCommentRepository.deleteById(UUID.fromString(blogArticleCommentRequest.getCommentUuid()));
-                this.blogArticleRepository.save(blogArticle);
-            } catch (Exception e) {
-                logger.error(e.toString().concat(Arrays.asList(e.getStackTrace()).toString()));
-                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
-            }
-        } else {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
     }
 }

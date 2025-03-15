@@ -42,7 +42,7 @@ public class BlogDataController {
 
     @DeleteMapping("/comment")
     public ResponseEntity<?> deleteArticleComment(@RequestBody BlogArticleCommentRequest blogArticleCommentRequest) {
-        if (blogArticleCommentRequest.getArticleUuid() == null || blogArticleCommentRequest.getCommentUuid() == null) {
+        if (blogArticleCommentRequest.getCommentUuid() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
 

@@ -1,10 +1,8 @@
 package com.assignment.blogapi.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.uuid.Generators;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.PrePersist;
+import jakarta.persistence.*;
 
 import java.util.UUID;
 
@@ -17,9 +15,18 @@ public class BlogArticleLike {
     @Column(nullable = false, name = "blog_article_like_user_id")
     private UUID blogUserUuid;
 
+    @ManyToOne
+    @JoinColumn(name = "blog_article_id")
+    @JsonBackReference
+    private BlogArticle blogArticle;
+
     @PrePersist
     public void generateOnCreate() {
         this.uuid = Generators.timeBasedGenerator().generate();
+    }
+
+    public BlogArticle getBlogArticle() {
+        return blogArticle;
     }
 
     public UUID getUuid() {
@@ -28,6 +35,10 @@ public class BlogArticleLike {
 
     public UUID getBlogUserUuid() {
         return blogUserUuid;
+    }
+
+    public void setBlogArticle(BlogArticle blogArticle) {
+        this.blogArticle = blogArticle;
     }
 
     public void setUuid(UUID uuid) {
