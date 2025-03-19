@@ -7,7 +7,6 @@ import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -63,7 +62,7 @@ public class JwtUtil {
                 .signWith(signingKey).compact();
     }
 
-    public Boolean validateToken(String token, UserDetails userDetails) {
+    public Boolean validateToken(String token) {
         try {
             Jwts.parser().verifyWith(signingKey).build().parseSignedClaims(token);
             if (!isTokenExpired(token)) {

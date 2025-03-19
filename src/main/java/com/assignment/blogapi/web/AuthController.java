@@ -2,17 +2,19 @@ package com.assignment.blogapi.web;
 
 import com.assignment.blogapi.dto.*;
 import com.assignment.blogapi.model.BlogUser;
-import com.assignment.blogapi.security.JwtUtil;
+import com.assignment.blogapi.security.ExceptionHandlerFilter;
 import com.assignment.blogapi.service.BlogUserService;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 @RestController
@@ -21,19 +23,16 @@ public class AuthController {
 
     private final AuthenticationManager authenticationManager;
     private final BlogUserService blogUserService;
-    private final JwtUtil jwtUtil;
 
     @Autowired
     public AuthController(AuthenticationManager authenticationManager,
-                          JwtUtil jwtUtil,
                           BlogUserService blogUserService) {
         this.authenticationManager = authenticationManager;
-        this.jwtUtil = jwtUtil;
         this.blogUserService = blogUserService;
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginSuccessResponse> authenticate(@RequestBody AuthenticationRequest authenticationRequest) {
+    public ResponseEntity<BlogUserDto> authenticate(@RequestBody AuthenticationRequest authenticationRequest, HttpServletResponse response) {
         if (authenticationRequest.getUsername() == null || authenticationRequest.getPassword() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
@@ -42,14 +41,17 @@ public class AuthController {
         );
 
         // blogUserService.getBlogUserByUsername() called once for further storing UUID in JWT and Context instead of user's username
+        // so it can be checked against database on verify
         BlogUser blogUser = blogUserService.getBlogUserByUsername(authenticationRequest.getUsername());
-        final String jwt = jwtUtil.generateToken(blogUser);
+        Cookie cookie = this.blogUserService.setupAuthCookie(blogUser);
+        response.addCookie(cookie);
+        response.addHeader(cookie.getName(), cookie.getValue());
 
-        return ResponseEntity.ok(new LoginSuccessResponse(jwt));
+        return ResponseEntity.ok(BlogUserService.mapUserData(blogUser));
     }
 
     @PostMapping("/register")
-    public ResponseEntity<LoginSuccessResponse> register(@RequestBody AuthRegistrationRequest authRegistrationRequest) {
+    public ResponseEntity<BlogUserDto> register(@RequestBody AuthRegistrationRequest authRegistrationRequest, HttpServletResponse response) {
         if (authRegistrationRequest.getUsername() == null || authRegistrationRequest.getPassword() == null
                 || authRegistrationRequest.getFirstName() == null || authRegistrationRequest.getLastName() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
@@ -65,9 +67,19 @@ public class AuthController {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(blogUser.getEmail(), authRegistrationRequest.getPassword())
         );
-        final String jwt = jwtUtil.generateToken(blogUser);
+        response.addCookie(this.blogUserService.setupAuthCookie(blogUser));
 
-        return ResponseEntity.ok(new LoginSuccessResponse(jwt));
+        return ResponseEntity.ok(BlogUserService.mapUserData(blogUser));
+    }
+
+    @GetMapping("/is-authenticated")
+    public ResponseEntity<BlogUserDto> isAuthenticated(Authentication auth) {
+        BlogUserDto blogUserDto = null;
+        if (auth.getPrincipal() != null) {
+            blogUserDto = (BlogUserDto) auth.getPrincipal();
+        }
+
+        return ResponseEntity.ok(blogUserDto);
     }
 
     @PostMapping("/username-check")
@@ -77,5 +89,13 @@ public class AuthController {
         }
 
         return ResponseEntity.ok(new UsernameCheckResponse(this.blogUserService.checkUsernameAvailability(usernameCheckRequest)));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(HttpServletRequest request, HttpServletResponse response) {
+        SecurityContextHolder.clearContext();
+        response.addCookie(ExceptionHandlerFilter.getSessionRemoverCookie());
+
+        return ResponseEntity.ok().build();
     }
 }

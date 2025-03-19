@@ -7,6 +7,7 @@ import com.assignment.blogapi.model.BlogArticle;
 import com.assignment.blogapi.model.BlogArticleComment;
 import com.assignment.blogapi.model.BlogArticleLike;
 import com.assignment.blogapi.service.BlogArticleService;
+import com.assignment.blogapi.util.AuthorityCheck;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -56,7 +57,7 @@ public class BlogDataController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
 
-        return ResponseEntity.ok(blogArticleService.toggleLikeOnArticle(blogArticleLikeRequest, authentication.getName()));
+        return ResponseEntity.ok(blogArticleService.toggleLikeOnArticle(blogArticleLikeRequest, AuthorityCheck.getCurrentUser(authentication).getUuid()));
     }
 
 }

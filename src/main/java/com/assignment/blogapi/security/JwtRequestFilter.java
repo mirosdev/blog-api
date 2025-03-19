@@ -1,28 +1,30 @@
 package com.assignment.blogapi.security;
 
 
+import com.assignment.blogapi.dto.BlogUserDto;
 import com.assignment.blogapi.model.BlogUser;
 import com.assignment.blogapi.repository.BlogUserRepository;
+import com.assignment.blogapi.service.BlogUserService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
-import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Stream;
 
-@Component
 public class JwtRequestFilter extends OncePerRequestFilter {
+
+    public static final String COOKIE_NAME = "session-token";
 
     private final JwtUtil jwtUtil;
     private final BlogUserRepository blogUserRepository;
@@ -35,32 +37,44 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
+        Optional<Cookie> oCookieAuth = Stream.of(Optional.ofNullable(request.getCookies()).orElse(new Cookie[0]))
+                .filter(cookie -> COOKIE_NAME.equals(cookie.getName()))
+                .findFirst();
 
-        final String authorizationHeader = request.getHeader("Authorization");
+        Cookie cookieAuth = oCookieAuth.orElse(null);
 
         String uuid = null;
         String jwt = null;
 
-        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-            jwt = authorizationHeader.substring(7);
-            uuid = jwtUtil.extractUserUuid(jwt);
+        if (cookieAuth != null) {
+            jwt = cookieAuth.getValue();
+            try {
+                jwtUtil.validateToken(jwt);
+            } catch (Exception e) {
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+            }
+            uuid = jwtUtil.extractUserUuid(cookieAuth.getValue());
         }
 
         if (uuid != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            Optional<BlogUser> blogUser = this.blogUserRepository.findById(UUID.fromString(uuid));
-            if (blogUser.isEmpty()) {
+            BlogUserDto blogUserDto;
+            Optional<BlogUser> oBlogUser;
+            try {
+                oBlogUser = this.blogUserRepository.findById(UUID.fromString(uuid));
+            } catch (Exception e) {
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+            if (oBlogUser.isEmpty()) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+            } else {
+                blogUserDto = BlogUserService.mapUserData(oBlogUser.get());
             }
 
-            UserDetails userDetails = new User(blogUser.get().getUuid().toString(), blogUser.get().getPassword(), blogUser.get().getAuthorities());
-
-            if (jwtUtil.validateToken(jwt, userDetails)) {
-                UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(
-                        userDetails, null, userDetails.getAuthorities());
-                usernamePasswordAuthenticationToken
-                        .setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
-            }
+            UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(
+                    blogUserDto, null, blogUserDto.getAuthorities());
+            usernamePasswordAuthenticationToken
+                    .setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
         }
         chain.doFilter(request, response);
     }
